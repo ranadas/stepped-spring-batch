@@ -24,88 +24,53 @@ import org.springframework.core.task.TaskExecutor;
 @SpringBootApplication
 @EnableBatchProcessing
 public class Application extends DefaultBatchConfigurer {
-	
-	public final static Logger logger = LoggerFactory.getLogger(Application.class);
 
-	@Autowired
-	public JobBuilderFactory jobBuilderFactory;
+    public final static Logger logger = LoggerFactory.getLogger(Application.class);
 
-	@Autowired
-	public StepBuilderFactory stepBuilderFactory;
+    @Autowired
+    public JobBuilderFactory jobBuilderFactory;
 
-	@Value("${chunk-size}")
-	private int chunkSize;
+    @Autowired
+    public StepBuilderFactory stepBuilderFactory;
 
-	@Value("${max-threads}")
-	private int maxThreads;
+    @Value("${chunk-size}")
+    private int chunkSize;
 
-	@Bean
-	@ConfigurationProperties(prefix = "spring.datasource")
-	public DataSource batchDataSource() {
-		return DataSourceBuilder.create().build();
-	}
+    @Value("${max-threads}")
+    private int maxThreads;
 
-	@Bean
-	public AttemptReader processAttemptReader() {
-		return new AttemptReader();
-	}
+    @Bean
+    @ConfigurationProperties(prefix = "spring.datasource")
+    public DataSource batchDataSource() {
+        return DataSourceBuilder.create().build();
+    }
 
-	@Bean
-	public AttemptProcessor processAttemptProcessor() {
-		return new AttemptProcessor();
-	}
+    @Autowired
+    private JobCompletionNotificationListener jobCompletionNotificationListener;
 
-	@Bean
-	public AttemptWriter processAttemptWriter() {
-		return new AttemptWriter();
-	}
+    @Autowired
+    private Step step;
 
-	@Bean
-	public JobCompletionNotificationListener jobExecutionListener() {
-		return new JobCompletionNotificationListener();
-	}
-	
-	@Bean
-	public StepExecutionNotificationListener stepExecutionListener() {
-		return new StepExecutionNotificationListener();
-	}
-	
-	@Bean
-	public ChunkExecutionListener chunkListener() {
-		return new ChunkExecutionListener();
-	}
+    @Bean
+    public TaskExecutor taskExecutor() {
+        SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
+        taskExecutor.setConcurrencyLimit(maxThreads);
+        return taskExecutor;
+    }
 
-	@Bean
-	public TaskExecutor taskExecutor() {
-		SimpleAsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
-		taskExecutor.setConcurrencyLimit(maxThreads);
-		return taskExecutor;
-	}
+    @Bean
+    public Job processAttemptJob() {
+        return jobBuilderFactory.get("process-attempt-job")
+                .incrementer(new RunIdIncrementer())
+                .listener(jobCompletionNotificationListener)
+                .flow(step).end().build();
+    }
 
-	@Bean
-	public Job processAttemptJob() {
-		return jobBuilderFactory.get("process-attempt-job")
-				.incrementer(new RunIdIncrementer())
-				.listener(jobExecutionListener())
-				.flow(step()).end().build();
-	}
 
-	@Bean
-	public Step step() {
-		return stepBuilderFactory.get("step").<Attempt, Attempt>chunk(chunkSize)
-				.reader(processAttemptReader())
-				.processor(processAttemptProcessor())
-				.writer(processAttemptWriter())
-				.taskExecutor(taskExecutor())
-				.listener(stepExecutionListener())
-				.listener(chunkListener())
-				.throttleLimit(maxThreads).build();
-	}
-
-	public static void main(String[] args) {
-		long time = System.currentTimeMillis();
-		SpringApplication.run(Application.class, args);
-		time = System.currentTimeMillis() - time;
-		logger.info("Runtime: {} seconds.", ((double)time/1000));
-	}
+    public static void main(String[] args) {
+        long time = System.currentTimeMillis();
+        SpringApplication.run(Application.class, args);
+        time = System.currentTimeMillis() - time;
+        logger.info("Runtime: {} seconds.", ((double) time / 1000));
+    }
 }
