@@ -4,7 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.listener.ChunkListenerSupport;
 import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ChunkExecutionListener extends ChunkListenerSupport{
 	
 	private static final Logger logger = LoggerFactory.getLogger(ChunkExecutionListener.class);

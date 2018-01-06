@@ -3,7 +3,9 @@ package com.rdas.springbatchexamples.multithreadedstep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AttemptProcessor implements ItemProcessor<Attempt,Attempt> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AttemptProcessor.class);
