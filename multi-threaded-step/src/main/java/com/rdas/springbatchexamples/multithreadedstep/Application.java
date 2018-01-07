@@ -20,7 +20,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
-
+//https://www.captechconsulting.com/blogs/spring-batch-multi-threaded-step
+//http://www.baeldung.com/introduction-to-spring-batch
+//https://github.com/tarrantrj/spring-batch-examples/tree/master/multi-threaded-step
 @SpringBootApplication
 @EnableBatchProcessing
 public class Application extends DefaultBatchConfigurer {
@@ -49,7 +51,7 @@ public class Application extends DefaultBatchConfigurer {
     private JobCompletionNotificationListener jobCompletionNotificationListener;
 
     @Autowired
-    private Step step;
+    private Step step1;
 
     @Bean
     public TaskExecutor taskExecutor() {
@@ -63,7 +65,9 @@ public class Application extends DefaultBatchConfigurer {
         return jobBuilderFactory.get("process-attempt-job")
                 .incrementer(new RunIdIncrementer())
                 .listener(jobCompletionNotificationListener)
-                .flow(step).end().build();
+                .flow(step1)
+                .end()
+                .build();
     }
 
 

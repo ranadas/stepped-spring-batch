@@ -27,7 +27,7 @@ public class StepConfig {
     private int maxThreads;
 
     @Bean
-    public Step step(@Autowired AttemptReader attemptReader,
+    public Step step1(@Autowired AttemptReader attemptReader,
                      @Autowired AttemptProcessor attemptProcessor,
                      @Autowired AttemptWriter attemptWriter,
                      @Autowired TaskExecutor taskExecutor,
